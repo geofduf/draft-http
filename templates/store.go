@@ -19,14 +19,29 @@ func NewStore(fsys fs.FS) (*Store, error) {
 		globals{data: make(map[string]any)},
 		make(map[string]*template.Template),
 	}
-	if err := s.initTemplates(fsys); err != nil {
+	if err := s.initTemplates(fsys, nil); err != nil {
 		return nil, err
 	}
 	return s, nil
 }
 
-func (s *Store) initTemplates(fsys fs.FS) error {
-	base, err := template.New("base.html").ParseFS(fsys, "base.html")
+func NewStoreWithFuncMap(fsys fs.FS, funcMap template.FuncMap) (*Store, error) {
+	s := &Store{
+		globals{data: make(map[string]any)},
+		make(map[string]*template.Template),
+	}
+	if err := s.initTemplates(fsys, funcMap); err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
+func (s *Store) initTemplates(fsys fs.FS, funcMap template.FuncMap) error {
+	base := template.New("base.html")
+	if funcMap != nil {
+		_ = base.Funcs(funcMap)
+	}
+	_, err := base.ParseFS(fsys, "base.html")
 	if err != nil {
 		return err
 	}
