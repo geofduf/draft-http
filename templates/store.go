@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"html/template"
+	"io"
 	"io/fs"
 	"net/http"
 	"regexp"
@@ -65,7 +66,7 @@ func (s *Store) initTemplates(fsys fs.FS, funcMap template.FuncMap) error {
 	return nil
 }
 
-func (s *Store) Render(w http.ResponseWriter, contentType string, name string, data map[string]any) error {
+func (s *Store) ExecuteTemplate(w io.Writer, name string, data map[string]any) error {
 	t, ok := s.templates[name]
 	if !ok {
 		return errors.New("template not found")
@@ -83,14 +84,16 @@ func (s *Store) Render(w http.ResponseWriter, contentType string, name string, d
 	}
 	s.Globals.mu.RUnlock()
 
-	var buf bytes.Buffer
+	return t.ExecuteTemplate(w, "base.html", data)
+}
 
-	err := t.ExecuteTemplate(&buf, "base.html", data)
-	if err != nil {
+func (s *Store) Render(w http.ResponseWriter, statusCode int, contentType, name string, data map[string]any) error {
+	var buf bytes.Buffer
+	if err := s.ExecuteTemplate(&buf, name, data); err != nil {
 		return err
 	}
-
 	w.Header().Set("Content-Type", contentType)
+	w.WriteHeader(statusCode)
 	buf.WriteTo(w)
 	return nil
 }
