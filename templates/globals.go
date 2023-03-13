@@ -25,10 +25,11 @@ func (g *globals) SetString(k string, v string) {
 	g.set(k, v)
 }
 
-func (g *globals) Get(k string) any {
+func (g *globals) Get(k string) (any, bool) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-	return g.data[k]
+	v, ok := g.data[k]
+	return v, ok
 }
 
 func (g *globals) Delete(k string) {
