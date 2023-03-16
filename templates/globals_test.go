@@ -34,6 +34,96 @@ func TestSetBool(t *testing.T) {
 	}
 }
 
+func TestSetFloat64(t *testing.T) {
+	tests := []struct {
+		id string
+		k  string
+		v  float64
+	}{
+		{"update", "k1", 0.3},
+		{"add", "k2", 0.2},
+	}
+	g := globals{data: map[string]any{"k1": 0.1}}
+	for _, tt := range tests {
+		t.Run(tt.id, func(t *testing.T) {
+			g.SetFloat64(tt.k, tt.v)
+			g.mu.RLock()
+			defer g.mu.RUnlock()
+			v, ok := g.data[tt.k]
+			if !ok {
+				t.Fatal("key not found")
+			}
+			got, ok := v.(float64)
+			if !ok {
+				t.Fatal("type is not float64")
+			}
+			if got != tt.v {
+				t.Errorf("got %f, want %f", got, tt.v)
+			}
+		})
+	}
+}
+
+func TestSetInt(t *testing.T) {
+	tests := []struct {
+		id string
+		k  string
+		v  int
+	}{
+		{"update", "k1", 3},
+		{"add", "k2", 2},
+	}
+	g := globals{data: map[string]any{"k1": 1}}
+	for _, tt := range tests {
+		t.Run(tt.id, func(t *testing.T) {
+			g.SetInt(tt.k, tt.v)
+			g.mu.RLock()
+			defer g.mu.RUnlock()
+			v, ok := g.data[tt.k]
+			if !ok {
+				t.Fatal("key not found")
+			}
+			got, ok := v.(int)
+			if !ok {
+				t.Fatal("type is not int")
+			}
+			if got != tt.v {
+				t.Errorf("got %d, want %d", got, tt.v)
+			}
+		})
+	}
+}
+
+func TestSetString(t *testing.T) {
+	tests := []struct {
+		id string
+		k  string
+		v  string
+	}{
+		{"update", "k1", "updated"},
+		{"add", "k2", "added"},
+	}
+	g := globals{data: map[string]any{"k1": "initial"}}
+	for _, tt := range tests {
+		t.Run(tt.id, func(t *testing.T) {
+			g.SetString(tt.k, tt.v)
+			g.mu.RLock()
+			defer g.mu.RUnlock()
+			v, ok := g.data[tt.k]
+			if !ok {
+				t.Fatal("key not found")
+			}
+			got, ok := v.(string)
+			if !ok {
+				t.Fatal("type is not string")
+			}
+			if got != tt.v {
+				t.Errorf("got %s, want %s", got, tt.v)
+			}
+		})
+	}
+}
+
 func TestGet(t *testing.T) {
 	want := 10000
 	g := globals{data: map[string]any{"k1": want}}
